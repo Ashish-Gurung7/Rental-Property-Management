@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'view_models/property_view_model.dart';
+import 'view_models/tenant_view_model.dart';
+import 'view_models/payment_view_model.dart';
 import 'screens/main_screen.dart';
 
 void main() {
-  runApp(const PropertyManagerApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => PropertyViewModel()),
+        ChangeNotifierProvider(create: (_) => TenantViewModel()),
+        ChangeNotifierProvider(create: (_) => PaymentViewModel()),
+      ],
+      child: const PropertyManagerApp(),
+    ),
+  );
 }
 
 class PropertyManagerApp extends StatelessWidget {

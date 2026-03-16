@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../view_models/payment_view_model.dart';
+import '../models/payment_model.dart';
 
 class PaymentsScreen extends StatelessWidget {
   const PaymentsScreen({super.key});
@@ -20,97 +23,73 @@ class PaymentsScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          _buildMonthSelector(),
-          const SizedBox(height: 24),
-          Row(
+      body: Consumer<PaymentViewModel>(
+        builder: (context, viewModel, child) {
+          final groupedPayments = viewModel.paymentsGroupedByDate;
+          return ListView(
+            padding: const EdgeInsets.all(16.0),
             children: [
-              Expanded(
-                child: _buildSummaryCard(
-                  context,
-                  title: 'Collected',
-                  amount: 'Rs. 133,165',
-                  count: '24 payments',
-                  icon: Icons.attach_money,
-                  iconColor: const Color(0xFF0C944B),
-                  iconBgColor: const Color(0xFFE9F7F0),
-                  amountColor: const Color(0xFF0C944B),
+              _buildMonthSelector(),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSummaryCard(
+                      context,
+                      title: 'Collected',
+                      amount: 'Rs. 133,165',
+                      count: '24 payments',
+                      icon: Icons.attach_money,
+                      iconColor: const Color(0xFF0C944B),
+                      iconBgColor: const Color(0xFFE9F7F0),
+                      amountColor: const Color(0xFF0C944B),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildSummaryCard(
+                      context,
+                      title: 'Pending',
+                      amount: 'Rs. 109,101',
+                      count: '20 payments',
+                      icon: Icons.trending_up,
+                      iconColor: const Color(0xFFE4632A),
+                      iconBgColor: const Color(0xFFFFF1EB),
+                      amountColor: const Color(0xFFE4632A),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'Transaction History',
+                style: TextStyle(
+                  color: Color(0xFF1A1D27),
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildSummaryCard(
-                  context,
-                  title: 'Pending',
-                  amount: 'Rs. 109,101',
-                  count: '20 payments',
-                  icon: Icons.trending_up,
-                  iconColor: const Color(0xFFE4632A),
-                  iconBgColor: const Color(0xFFFFF1EB),
-                  amountColor: const Color(0xFFE4632A),
-                ),
-              ),
+              const SizedBox(height: 16),
+              ...groupedPayments.entries.map((entry) {
+                final date = entry.key;
+                final payments = entry.value;
+                final totalForDate = 'Rs. 5,949'; // Placeholder for total, could be calculated
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDateHeader(date, totalForDate),
+                    ...payments.map((payment) => _buildTransactionCard(
+                          context,
+                          payment: payment,
+                        )),
+                    const SizedBox(height: 16),
+                  ],
+                );
+              }),
+              const SizedBox(height: 100),
             ],
-          ),
-          const SizedBox(height: 32),
-          const Text(
-            'Transaction History',
-            style: TextStyle(
-              color: Color(0xFF1A1D27),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildDateHeader('Friday, Mar 27', 'Rs. 5,949'),
-          _buildTransactionCard(
-            context,
-            name: 'Bijay Shrestha',
-            property: 'Annapurna Residency',
-            amount: '+Rs. 5,949',
-            method: 'online',
-            time: '5:45 AM',
-          ),
-          const SizedBox(height: 24),
-          _buildDateHeader('Wednesday, Mar 25', 'Rs. 5,941'),
-          _buildTransactionCard(
-            context,
-            name: 'Sapana Rai',
-            property: 'Machhapuchhre Heights',
-            amount: '+Rs. 5,941',
-            method: 'cash',
-            time: '5:45 AM',
-          ),
-          const SizedBox(height: 24),
-          _buildDateHeader('Monday, Mar 23', 'Rs. 16,266'),
-          _buildTransactionCard(
-            context,
-            name: 'Santosh Gurung',
-            property: 'Sagarmatha Apartments',
-            amount: '+Rs. 5,896',
-            method: 'online',
-            time: '5:45 AM',
-          ),
-          _buildTransactionCard(
-            context,
-            name: 'Binod Tamang',
-            property: 'Sagarmatha Apartments',
-            amount: '+Rs. 5,095',
-            method: 'online',
-            time: '5:45 AM',
-          ),
-          _buildTransactionCard(
-            context,
-            name: 'Kabita Magar',
-            property: 'Lumbini Garden',
-            amount: '+Rs. 5,275',
-            method: 'online',
-            time: '5:45 AM',
-          ),
-          const SizedBox(height: 100),
-        ],
+          );
+        },
       ),
     );
   }
@@ -247,11 +226,7 @@ class PaymentsScreen extends StatelessWidget {
 
   Widget _buildTransactionCard(
     BuildContext context, {
-    required String name,
-    required String property,
-    required String amount,
-    required String method,
-    required String time,
+    required Payment payment,
   }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -265,7 +240,7 @@ class PaymentsScreen extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      name,
+                      payment.tenantName,
                       style: const TextStyle(
                         color: Color(0xFF1A1D27),
                         fontSize: 16,
@@ -276,15 +251,15 @@ class PaymentsScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: method == 'online'
+                        color: payment.method == 'online'
                             ? const Color(0xFFEDF2FF)
                             : const Color(0xFFE9F7F0),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        method,
+                        payment.method,
                         style: TextStyle(
-                          color: method == 'online'
+                          color: payment.method == 'online'
                               ? const Color(0xFF1D5CFF)
                               : const Color(0xFF0C944B),
                           fontSize: 11,
@@ -295,7 +270,7 @@ class PaymentsScreen extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  amount,
+                  payment.amount,
                   style: const TextStyle(
                     color: Color(0xFF0C944B),
                     fontSize: 16,
@@ -309,14 +284,14 @@ class PaymentsScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  property,
+                  payment.propertyName,
                   style: const TextStyle(
                     color: Color(0xFF7B8190),
                     fontSize: 14,
                   ),
                 ),
                 Text(
-                  time,
+                  payment.time,
                   style: const TextStyle(
                     color: Color(0xFF7B8190),
                     fontSize: 12,

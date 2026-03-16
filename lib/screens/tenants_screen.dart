@@ -1,22 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../view_models/tenant_view_model.dart';
+import '../models/tenant_model.dart';
 
-
-class TenantsScreen extends StatefulWidget {
+class TenantsScreen extends StatelessWidget {
   const TenantsScreen({super.key});
-
-  @override
-  State<TenantsScreen> createState() => _TenantsScreenState();
-}
-
-class _TenantsScreenState extends State<TenantsScreen> {
-  String _selectedFilter = 'All (44)';
-
-  final List<String> _filters = [
-    'All (44)',
-    'Paid (33)',
-    'Pending (6)',
-    'Overdue (5)',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -35,76 +23,34 @@ class _TenantsScreenState extends State<TenantsScreen> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: _buildSearchBar(),
-          ),
-          _buildFilterChips(),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              children: [
-                _buildTenantCard(
-                  context,
-                  name: 'Ram Bahadur',
-                  property: 'Annapurna Residency',
-                  room: 'R1',
-                  phone: '+977 9800000000',
-                  email: 'ram.bahadur@email.com',
-                  rent: 'Rs. 15,621/mo',
-                  status: 'paid',
+      body: Consumer<TenantViewModel>(
+        builder: (context, viewModel, child) {
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: _buildSearchBar(),
+              ),
+              _buildFilterChips(viewModel),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  itemCount: viewModel.tenants.length,
+                  itemBuilder: (context, index) {
+                    final tenant = viewModel.tenants[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: _buildTenantCard(
+                        context,
+                        tenant: tenant,
+                      ),
+                    );
+                  },
                 ),
-                const SizedBox(height: 16),
-                _buildTenantCard(
-                  context,
-                  name: 'Sita Devi',
-                  property: 'Annapurna Residency',
-                  room: 'R2',
-                  phone: '+977 9800001111',
-                  email: 'sita.devi@email.com',
-                  rent: 'Rs. 15,620/mo',
-                  status: 'paid',
-                ),
-                const SizedBox(height: 16),
-                _buildTenantCard(
-                  context,
-                  name: 'Hari Shrestha',
-                  property: 'Annapurna Residency',
-                  room: 'R3',
-                  phone: '+977 9800002222',
-                  email: 'hari.shrestha@email.com',
-                  rent: 'Rs. 15,169/mo',
-                  status: 'paid',
-                ),
-                const SizedBox(height: 16),
-                _buildTenantCard(
-                  context,
-                  name: 'Maya Tamang',
-                  property: 'Annapurna Residency',
-                  room: 'R4',
-                  phone: '+977 9800003333',
-                  email: 'maya.tamang@email.com',
-                  rent: 'Rs. 15,583/mo',
-                  status: 'overdue',
-                ),
-                const SizedBox(height: 16),
-                _buildTenantCard(
-                  context,
-                  name: 'Arjun Gurung',
-                  property: 'Annapurna Residency',
-                  room: 'R5',
-                  phone: '+977 9800004444',
-                  email: 'arjun.gurung@email.com',
-                  rent: 'Rs. 15,452/mo',
-                  status: 'paid',
-                ),
-                const SizedBox(height: 100), // padding for bottom nav
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -127,13 +73,13 @@ class _TenantsScreenState extends State<TenantsScreen> {
     );
   }
 
-  Widget _buildFilterChips() {
+  Widget _buildFilterChips(TenantViewModel viewModel) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
-        children: _filters.map((filter) {
-          final isSelected = filter == _selectedFilter;
+        children: viewModel.filters.map((filter) {
+          final isSelected = filter == viewModel.selectedFilter;
           return Padding(
             padding: const EdgeInsets.only(right: 12.0),
             child: ChoiceChip(
@@ -147,9 +93,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
               selected: isSelected,
               onSelected: (selected) {
                 if (selected) {
-                  setState(() {
-                    _selectedFilter = filter;
-                  });
+                  viewModel.setFilter(filter);
                 }
               },
               backgroundColor: const Color(0xFFEFF1F5),
@@ -170,21 +114,15 @@ class _TenantsScreenState extends State<TenantsScreen> {
 
   Widget _buildTenantCard(
     BuildContext context, {
-    required String name,
-    required String property,
-    required String room,
-    required String phone,
-    required String email,
-    required String rent,
-    required String status,
+    required Tenant tenant,
   }) {
     Color badgeBg;
     Color badgeText;
 
-    if (status == 'paid') {
+    if (tenant.status == TenantStatus.paid) {
       badgeBg = const Color(0xFF0F172A);
       badgeText = Colors.white;
-    } else if (status == 'overdue') {
+    } else if (tenant.status == TenantStatus.overdue) {
       badgeBg = const Color(0xFFD91E47); // red from design
       badgeText = Colors.white;
     } else {
@@ -202,11 +140,11 @@ class _TenantsScreenState extends State<TenantsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  name,
+                  tenant.name,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(
-                  rent,
+                  tenant.rent,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ],
@@ -216,7 +154,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '$property • $room',
+                  '${tenant.property} • ${tenant.room}',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Container(
@@ -226,7 +164,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    status,
+                    tenant.status.name,
                     style: TextStyle(
                       color: badgeText,
                       fontSize: 12,
@@ -242,7 +180,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
                 const Icon(Icons.phone_outlined, size: 16, color: Color(0xFF7B8190)),
                 const SizedBox(width: 8),
                 Text(
-                  phone,
+                  tenant.phone,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -253,7 +191,7 @@ class _TenantsScreenState extends State<TenantsScreen> {
                 const Icon(Icons.email_outlined, size: 16, color: Color(0xFF7B8190)),
                 const SizedBox(width: 8),
                 Text(
-                  email,
+                  tenant.email,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
