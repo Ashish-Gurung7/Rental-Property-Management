@@ -56,4 +56,22 @@ class PropertyViewModel extends ChangeNotifier {
   ];
 
   List<Property> get properties => _properties;
+
+  void addProperty(Property property) {
+    _properties.add(property);
+    notifyListeners();
+  }
+
+  void updateProperty(Property property) {
+    final index = _properties.indexWhere((p) => p.id == property.id);
+    if (index != -1) {
+      _properties[index] = property;
+      notifyListeners();
+    }
+  }
+
+  void deleteProperty(String id) {
+    _properties.removeWhere((p) => p.id == id);
+    notifyListeners();
+  }
 }

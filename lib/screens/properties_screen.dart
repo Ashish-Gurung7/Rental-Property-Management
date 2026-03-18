@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/property_view_model.dart';
 import '../models/property_model.dart';
+import 'add_edit_property_screen.dart';
 
 class PropertiesScreen extends StatelessWidget {
   const PropertiesScreen({super.key});
@@ -47,14 +48,23 @@ class PropertiesScreen extends StatelessWidget {
               final property = properties[index];
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16.0),
-                child: _buildPropertyCard(
-                  context,
-                  property: property,
-                ),
+                child: _buildPropertyCard(context, property: property),
               );
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFF1D5CFF),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddEditPropertyScreen(),
+            ),
+          );
+        },
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -78,7 +88,7 @@ class PropertiesScreen extends StatelessWidget {
                   ),
                   child: const Icon(
                     Icons.domain,
-                    color: const Color(0xFF1D5CFF),
+                    color: Color(0xFF1D5CFF),
                     size: 28,
                   ),
                 ),
@@ -89,9 +99,9 @@ class PropertiesScreen extends StatelessWidget {
                     children: [
                       Text(
                         property.name,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontSize: 18,
-                        ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(fontSize: 18),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -100,6 +110,22 @@ class PropertiesScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, color: Color(0xFF7B8190)),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => AddEditPropertyScreen(property: property),
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Color(0xFFD9483A)),
+                  onPressed: () => _showDeleteDialog(context, property),
                 ),
               ],
             ),
@@ -148,7 +174,11 @@ class PropertiesScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.people_outline, color: Color(0xFF7B8190), size: 20),
+                    const Icon(
+                      Icons.people_outline,
+                      color: Color(0xFF7B8190),
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       '${property.tenantsCount} Tenants',
@@ -200,9 +230,9 @@ class PropertiesScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontSize: 18,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontSize: 18),
           ),
           const SizedBox(height: 4),
           Text(
@@ -212,6 +242,36 @@ class PropertiesScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, Property property) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Delete Property'),
+            content: Text('Are you sure you want to delete "${property.name}"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Provider.of<PropertyViewModel>(
+                    context,
+                    listen: false,
+                  ).deleteProperty(property.id);
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Color(0xFFD9483A)),
+                ),
+              ),
+            ],
+          ),
     );
   }
 }
