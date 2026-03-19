@@ -55,13 +55,13 @@ class TenantViewModel extends ChangeNotifier {
     ),
   ];
 
-  String _selectedFilter = 'All (44)';
+  String _selectedFilter = 'All';
 
   final List<String> _filters = [
-    'All (44)',
-    'Paid (33)',
-    'Pending (6)',
-    'Overdue (5)',
+    'All',
+    'Paid',
+    'Pending',
+    'Overdue',
   ];
 
   String get selectedFilter => _selectedFilter;
@@ -73,15 +73,41 @@ class TenantViewModel extends ChangeNotifier {
   }
 
   List<Tenant> get tenants {
-    if (_selectedFilter.startsWith('All')) {
+    if (_selectedFilter == 'All') {
       return _allTenants;
-    } else if (_selectedFilter.startsWith('Paid')) {
+    } else if (_selectedFilter == 'Paid') {
       return _allTenants.where((t) => t.status == TenantStatus.paid).toList();
-    } else if (_selectedFilter.startsWith('Overdue')) {
+    } else if (_selectedFilter == 'Overdue') {
       return _allTenants.where((t) => t.status == TenantStatus.overdue).toList();
-    } else if (_selectedFilter.startsWith('Pending')) {
+    } else if (_selectedFilter == 'Pending') {
       return _allTenants.where((t) => t.status == TenantStatus.pending).toList();
     }
     return _allTenants;
+  }
+
+  void addTenant(Tenant tenant) {
+    _allTenants.add(tenant);
+    notifyListeners();
+  }
+
+  void updateTenant(Tenant tenant) {
+    final index = _allTenants.indexWhere((t) => t.id == tenant.id);
+    if (index != -1) {
+      _allTenants[index] = tenant;
+      notifyListeners();
+    }
+  }
+
+  void deleteTenant(String id) {
+    _allTenants.removeWhere((t) => t.id == id);
+    notifyListeners();
+  }
+
+  int getCountByStatus(String filter) {
+    if (filter == 'All') return _allTenants.length;
+    if (filter == 'Paid') return _allTenants.where((t) => t.status == TenantStatus.paid).length;
+    if (filter == 'Pending') return _allTenants.where((t) => t.status == TenantStatus.pending).length;
+    if (filter == 'Overdue') return _allTenants.where((t) => t.status == TenantStatus.overdue).length;
+    return 0;
   }
 }

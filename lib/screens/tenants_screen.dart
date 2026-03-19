@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/tenant_view_model.dart';
 import '../models/tenant_model.dart';
+import 'add_edit_tenant_screen.dart';
 
 class TenantsScreen extends StatelessWidget {
   const TenantsScreen({super.key});
@@ -40,9 +41,19 @@ class TenantsScreen extends StatelessWidget {
                     final tenant = viewModel.tenants[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
-                      child: _buildTenantCard(
-                        context,
-                        tenant: tenant,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddEditTenantScreen(tenant: tenant),
+                            ),
+                          );
+                        },
+                        child: _buildTenantCard(
+                          context,
+                          tenant: tenant,
+                        ),
                       ),
                     );
                   },
@@ -51,6 +62,18 @@ class TenantsScreen extends StatelessWidget {
             ],
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddEditTenantScreen(),
+            ),
+          );
+        },
+        backgroundColor: const Color(0xFF1D5CFF),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -80,11 +103,12 @@ class TenantsScreen extends StatelessWidget {
       child: Row(
         children: viewModel.filters.map((filter) {
           final isSelected = filter == viewModel.selectedFilter;
+          final count = viewModel.getCountByStatus(filter);
           return Padding(
             padding: const EdgeInsets.only(right: 12.0),
             child: ChoiceChip(
               label: Text(
-                filter,
+                '$filter ($count)',
                 style: TextStyle(
                   color: isSelected ? const Color(0xFF1A1D27) : const Color(0xFF1A1D27),
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
