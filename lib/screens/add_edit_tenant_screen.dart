@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/tenant_model.dart';
 import '../view_models/tenant_view_model.dart';
 import '../view_models/property_view_model.dart';
@@ -22,6 +24,7 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
   
   String? _selectedProperty;
   late TenantStatus _selectedStatus;
+  String? _imagePath;
 
   bool get _isEditing => widget.tenant != null;
 
@@ -44,6 +47,7 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
     
     _selectedProperty = widget.tenant?.property;
     _selectedStatus = widget.tenant?.status ?? TenantStatus.pending;
+    _imagePath = widget.tenant?.imagePath;
   }
 
   @override
@@ -54,6 +58,17 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
     _emailController.dispose();
     _rentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (image != null) {
+      setState(() {
+        _imagePath = image.path;
+      });
+    }
   }
 
   void _submitData() {
@@ -74,6 +89,7 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
         email: _emailController.text,
         rent: 'Rs. ${_rentController.text}/mo',
         status: _selectedStatus,
+        imagePath: _imagePath,
       );
 
       final viewModel = Provider.of<TenantViewModel>(context, listen: false);
@@ -129,6 +145,38 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
           key: _formKey,
           child: ListView(
             children: [
+              Center(
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.grey[200],
+                        backgroundImage: _imagePath != null
+                            ? FileImage(File(_imagePath!))
+                            : null,
+                        child: _imagePath == null
+                            ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                            : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF1D5CFF),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Full Name'),

@@ -7,6 +7,7 @@ class Property {
   final int vacant;
   final int tenantsCount;
   final String revenue;
+  final String? imagePath;
 
   Property({
     required this.id,
@@ -17,5 +18,6 @@ class Property {
     required this.vacant,
     required this.tenantsCount,
     required this.revenue,
+    this.imagePath,
   });
 }

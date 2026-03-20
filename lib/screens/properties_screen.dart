@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/property_view_model.dart';
@@ -81,16 +82,25 @@ class PropertiesScreen extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
                     color: const Color(0xFFEDF2FF),
                     borderRadius: BorderRadius.circular(12),
+                    image: property.imagePath != null
+                        ? DecorationImage(
+                            image: FileImage(File(property.imagePath!)),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
-                  child: const Icon(
-                    Icons.domain,
-                    color: Color(0xFF1D5CFF),
-                    size: 28,
-                  ),
+                  child: property.imagePath == null
+                      ? const Icon(
+                          Icons.domain,
+                          color: Color(0xFF1D5CFF),
+                          size: 28,
+                        )
+                      : null,
                 ),
                 const SizedBox(width: 16),
                 Expanded(

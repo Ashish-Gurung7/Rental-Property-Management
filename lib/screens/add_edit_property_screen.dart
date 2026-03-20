@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/property_model.dart';
 import '../view_models/property_view_model.dart';
 
@@ -17,6 +19,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
   late final TextEditingController _addressController;
   late final TextEditingController _roomsController;
   late final TextEditingController _revenueController;
+  String? _imagePath;
 
   bool get _isEditing => widget.property != null;
 
@@ -36,6 +39,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
       revenueText = revenueText.substring(4);
     }
     _revenueController = TextEditingController(text: revenueText);
+    _imagePath = widget.property?.imagePath;
   }
 
   @override
@@ -45,6 +49,17 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
     _roomsController.dispose();
     _revenueController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (image != null) {
+      setState(() {
+        _imagePath = image.path;
+      });
+    }
   }
 
   void _submitData() {
@@ -60,6 +75,7 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
             : int.parse(_roomsController.text),
         tenantsCount: _isEditing ? widget.property!.tenantsCount : 0,
         revenue: 'Rs. ${_revenueController.text}',
+        imagePath: _imagePath,
       );
 
       final viewModel = Provider.of<PropertyViewModel>(context, listen: false);
@@ -84,6 +100,34 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
           key: _formKey,
           child: ListView(
             children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(12),
+                    image: _imagePath != null
+                        ? DecorationImage(
+                            image: FileImage(File(_imagePath!)),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: _imagePath == null
+                      ? const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_a_photo, size: 50, color: Colors.grey),
+                            SizedBox(height: 8),
+                            Text('Add Property Photo', style: TextStyle(color: Colors.grey)),
+                          ],
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Property Name'),

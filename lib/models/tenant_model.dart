@@ -9,6 +9,7 @@ class Tenant {
   final String email;
   final String rent;
   final TenantStatus status;
+  final String? imagePath;
 
   Tenant({
     required this.id,
@@ -19,5 +20,6 @@ class Tenant {
     required this.email,
     required this.rent,
     required this.status,
+    this.imagePath,
   });
 }

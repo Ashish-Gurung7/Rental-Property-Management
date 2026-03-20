@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../view_models/property_view_model.dart';
 
 
 class HomeScreen extends StatelessWidget {
@@ -8,80 +11,54 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FA),
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(context),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                const SizedBox(height: 16),
-                _buildTotalCollectionCard(context),
-                const SizedBox(height: 16),
-                _buildStatsRow(context),
-                const SizedBox(height: 16),
-                _buildOverdueAlert(context),
-                const SizedBox(height: 24),
-                Text(
-                  'Property-wise Collection',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
+      body: Consumer<PropertyViewModel>(
+        builder: (context, propertyViewModel, child) {
+          final properties = propertyViewModel.properties;
+          
+          return CustomScrollView(
+            slivers: [
+              _buildAppBar(context),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    const SizedBox(height: 16),
+                    _buildTotalCollectionCard(context),
+                    const SizedBox(height: 16),
+                    _buildStatsRow(context),
+                    const SizedBox(height: 16),
+                    _buildOverdueAlert(context),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Property-wise Collection',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ...properties.map((property) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: _buildPropertyCollectionCard(
+                        context,
+                        name: property.name,
+                        address: property.address,
+                        collected: 'Rs. 0', // Placeholder as revenue is a string like "Rs. 1000"
+                        total: 'of ${property.revenue}',
+                        progress: 0.0,
+                        paidText: '0/${property.totalRooms} paid',
+                        pendingText: '${property.vacant} vacant',
+                        isPendingWarning: true,
+                        imagePath: property.imagePath,
+                      ),
+                    )),
+                    const SizedBox(height: 24),
+                  ]),
                 ),
-                const SizedBox(height: 16),
-                _buildPropertyCollectionCard(
-                  context,
-                  name: 'Annapurna Residency',
-                  address: 'Chabahil, Kathmandu',
-                  collected: 'Rs. 33,205',
-                  total: 'of Rs. 49,272',
-                  progress: 0.67,
-                  paidText: '6/9 paid',
-                  pendingText: '3 pending',
-                  isPendingWarning: true,
-                ),
-                const SizedBox(height: 16),
-                _buildPropertyCollectionCard(
-                  context,
-                  name: 'Machhapuchhre Heights',
-                  address: 'Lakeside, Pokhara',
-                  collected: 'Rs. 43,840',
-                  total: 'of Rs. 54,831',
-                  progress: 0.8,
-                  paidText: '8/10 paid',
-                  pendingText: '2 pending',
-                  isPendingWarning: true,
-                ),
-                 const SizedBox(height: 16),
-                _buildPropertyCollectionCard(
-                  context,
-                  name: 'Sagarmatha Apartments',
-                  address: 'Patan, Lalitpur',
-                  collected: 'Rs. 38,827',
-                  total: 'of Rs. 44,146',
-                  progress: 0.88,
-                  paidText: '7/8 paid',
-                  pendingText: '1 pending',
-                  isPendingWarning: true,
-                ),
-                 const SizedBox(height: 16),
-                _buildPropertyCollectionCard(
-                  context,
-                  name: 'Lumbini Garden',
-                  address: 'Bhairahawa, Rupandehi',
-                  collected: 'Rs. 32,956',
-                  total: 'of Rs. 54,989',
-                  progress: 0.6,
-                  paidText: '6/10 paid',
-                  pendingText: '4 pending',
-                  isPendingWarning: true,
-                ),
-                const SizedBox(height: 24),
-              ]),
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -332,6 +309,7 @@ class HomeScreen extends StatelessWidget {
     required String paidText,
     required String pendingText,
     required bool isPendingWarning,
+    String? imagePath,
   }) {
     return Card(
       child: Padding(
@@ -340,9 +318,20 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (imagePath != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        File(imagePath),
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
